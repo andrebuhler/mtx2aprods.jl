@@ -1,5 +1,5 @@
 
-function mtx2aprods(mtx; compact = true)
+function mtx2aprods(mtx :: String; compact = true)
   m = n = s = st = 0
   open(mtx, "r") do file
     kline = 1
