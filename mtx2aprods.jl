@@ -29,7 +29,7 @@ function mtx2aprods(mtx :: String; compact = true)
         end
 
         qualifier = split(lines[1])[5]
-        if qualifier != "general" && qualifier != "symmetric" && qualifier && qualifier != skew-symmetric && qualifier != hermitian
+        if qualifier != "general" && qualifier != "symmetric" && qualifier != "skew-symmetric" && qualifier != "hermitian"
             error("Not an struct format valid!")
         end
 
