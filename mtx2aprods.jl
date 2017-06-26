@@ -1,9 +1,29 @@
 
 function mtx2aprods(mtx :: String; compact = true)
-    m = n = s = st = 0
+    m = n = nz = s = st = 0
     open(mtx, "r") do file
         kline = 1
         lines = readlines(file)
+        if split(lines[1])[1] != "%%MatrixMarket"
+            error("Not a matrixmarket file!")
+        end
+        if split(lines[1])[2] != "matrix"
+            error("Format not implemented!")
+        end
+        if split(lines[1])[3] != "coordinate"
+            error("Format for matrix not implemented!")
+        end
+        if split(lines[1])[4] == "real"
+            entries = Float64
+        elseif split(lines[1])[4] == "integer"
+            entries = Int64
+        elseif split(lines[1])[4] == "complex"
+            entries = Complex64
+        elseif split(lines[1])[4] == "pattern"
+            error("Entries format not implemented!")
+        else
+            error("Not an entries format valid!")
+        end
 
         #comments of mtx files
         while split(lines[kline])[1][1] == '%'
@@ -22,7 +42,7 @@ function mtx2aprods(mtx :: String; compact = true)
             if spl[1][1] == '%'
                 continue
             end
-            i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Float64,spl[3])
+            i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
             sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
 
             if compact
@@ -67,5 +87,6 @@ function mtx2aprods(mtx :: String; compact = true)
 
         end
     end
-    return
+    println("Sucess")
+    return (m,n,nz)
 end
