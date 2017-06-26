@@ -4,25 +4,33 @@ function mtx2aprods(mtx :: String; compact = true)
     open(mtx, "r") do file
         kline = 1
         lines = readlines(file)
+
         if split(lines[1])[1] != "%%MatrixMarket"
             error("Not a matrixmarket file!")
         end
         if split(lines[1])[2] != "matrix"
             error("Format not implemented!")
         end
+
         if split(lines[1])[3] != "coordinate"
             error("Format for matrix not implemented!")
         end
-        if split(lines[1])[4] == "real"
+        qualifier = split(lines[1])[4]
+        if qualifier == "real"
             entries = Float64
-        elseif split(lines[1])[4] == "integer"
+        elseif qualifier == "integer"
             entries = Int64
-        elseif split(lines[1])[4] == "complex"
+        elseif qualifier == "complex"
             entries = Complex64
-        elseif split(lines[1])[4] == "pattern"
+        elseif qualifier == "pattern"
             error("Entries format not implemented!")
         else
             error("Not an entries format valid!")
+        end
+
+        qualifier = split(lines[1])[5]
+        if qualifier != "general" && qualifier != "symmetric" && qualifier && qualifier != skew-symmetric && qualifier != hermitian
+            error("Not an struct format valid!")
         end
 
         #comments of mtx files
@@ -33,22 +41,29 @@ function mtx2aprods(mtx :: String; compact = true)
         #dimensions of matrix
         spl = split(lines[kline])
         m, n, nz = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Int64,spl[3])
+        s,st = nha(kline,spl,compact,entries,qualifier)
 
         s = fill("0", m)
         st = fill("0", n)
-
-        for kline = kline+1:length(lines)
-            spl = split(lines[kline])
-            if spl[1][1] == '%'
-                continue
-            end
-            i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-            sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-
-            if compact
+        if compact
+            for kline = kline+1:length(lines)
+                spl = split(lines[kline])
+                if spl[1][1] == '%'
+                    continue
+                end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                 s[i] = s[i] * "$sgn$aij*v[$j]"
                 st[j] = st[j] * "$sgn$aij*v[$i]"
-            else
+            end
+        else
+            for kline = kline+1:length(lines)
+                spl = split(lines[kline])
+                if spl[1][1] == '%'
+                    continue
+                end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                 s[i] = s[i] * " $sgn $aij*v[$j]"
                 st[j] = st[j] * " $sgn $aij*v[$i]"
             end
@@ -89,4 +104,9 @@ function mtx2aprods(mtx :: String; compact = true)
     end
     println("Sucess")
     return (m,n,nz)
+end
+
+function nha(kline,spl,compact,entries,qualifier)
+
+    return s,st
 end
