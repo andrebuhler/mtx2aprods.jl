@@ -15,13 +15,14 @@ function mtx2aprods(mtx :: String; compact = true)
         if split(lines[1])[3] != "coordinate"
             error("Format for matrix not implemented!")
         end
+
         qualifier = split(lines[1])[4]
         if qualifier == "real"
             entries = Float64
         elseif qualifier == "integer"
             entries = Int64
         elseif qualifier == "complex"
-            entries = Complex64
+            entries = Float64
         elseif qualifier == "pattern"
             error("Entries format not implemented!")
         else
@@ -29,7 +30,7 @@ function mtx2aprods(mtx :: String; compact = true)
         end
 
         qualifier = split(lines[1])[5]
-        if qualifier != "general" && qualifier != "symmetric" && qualifier != "skew-symmetric" && qualifier != "hermitian"
+        if qualifier != "general" && qualifier != "symmetric" &&  qualifier != "skew-symmetric" && qualifier != "hermitian"
             error("Not an struct format valid!")
         end
 
@@ -41,31 +42,118 @@ function mtx2aprods(mtx :: String; compact = true)
         #dimensions of matrix
         spl = split(lines[kline])
         m, n, nz = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Int64,spl[3])
-        s,st = nha(kline,spl,compact,entries,qualifier)
 
         s = fill("0", m)
         st = fill("0", n)
         if compact
-            for kline = kline+1:length(lines)
-                spl = split(lines[kline])
-                if spl[1][1] == '%'
-                    continue
+            if qualifier == "general"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * "$sgn$aij*v[$j]"
+                    st[j] = st[j] * "$sgn$aij*v[$i]"
                 end
-                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                s[i] = s[i] * "$sgn$aij*v[$j]"
-                st[j] = st[j] * "$sgn$aij*v[$i]"
+            elseif qualifier == "symmetric"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * "$sgn$aij*v[$j]"
+                    st[j] = st[j] * "$sgn$aij*v[$i]"
+
+                    s[j] = s[j] * "$sgn$aij*v[$i]"
+                    st[i] = st[i] * "$sgn$aij*v[$j]"
+                end
+            elseif qualifier == "skew-symmetric"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
+                    s[i] = s[i] * "$sgn$aij*v[$j]"
+                    st[j] = st[j] * "$sgn$aij*v[$i]"
+
+                    s[j] = s[j] * "$isgn$aij*v[$i]"
+                    st[i] = st[i] * "$isgn$aij*v[$j]"
+                end
+            elseif qualifier == "hermitian"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
+                    sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * "$sgn$aij*v[$j]"
+                    st[j] = st[j] * "$sgn$aij*v[$i]"
+
+                    s[j] = s[j] * "$sgn$(aij')*v[$i]"
+                    st[i] = st[i] * "$sgn$(aij')*v[$j]"
+                end
             end
         else
-            for kline = kline+1:length(lines)
-                spl = split(lines[kline])
-                if spl[1][1] == '%'
-                    continue
+            if qualifier == "general"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * " $sgn $aij*v[$j]"
+                    st[j] = st[j] * " $sgn $aij*v[$i]"
                 end
-                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                s[i] = s[i] * " $sgn $aij*v[$j]"
-                st[j] = st[j] * " $sgn $aij*v[$i]"
+            elseif qualifier == "symmetric"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * " $sgn $aij*v[$j]"
+                    st[j] = st[j] * " $sgn $aij*v[$i]"
+
+                    s[j] = s[j] * " $sgn $aij*v[$i]"
+                    st[i] = st[i] * " $sgn $aij*v[$j]"
+                end
+            elseif qualifier == "skew-symmetric"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                    sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
+                    s[i] = s[i] * " $sgn $aij*v[$j]"
+                    st[j] = st[j] * " $sgn $aij*v[$i]"
+
+                    s[j] = s[j] * " $isgn $aij*v[$i]"
+                    st[i] = st[i] * " $isgn $aij*v[$j]"
+                end
+            elseif qualifier == "hermitian"
+                for kline = kline+1:length(lines)
+                    spl = split(lines[kline])
+                    if spl[1][1] == '%'
+                        continue
+                    end
+                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
+                    sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * " $sgn $aij*v[$j]"
+                    st[j] = st[j] * " $sgn $aij*v[$i]"
+
+                    s[j] = s[j] * " $sgn $(aij')*v[$i]"
+                    st[i] = st[i] * " $sgn $(aij')*v[$j]"
+                end
             end
         end
     end
@@ -79,7 +167,7 @@ function mtx2aprods(mtx :: String; compact = true)
             end
             write(file_Aprod,"];return s; end\n")
 
-            write(file_Aprod,"function Atprod(v)")
+            write(file_Aprod,"function Aprod(v)")
             write(file_Aprod," st=[")
             for j = 1:n
                 @printf(file_Aprod, "st[%d] = %s;", j, st[j])
@@ -87,26 +175,21 @@ function mtx2aprods(mtx :: String; compact = true)
             write(file_Aprod,"];return st; end")
 
         else
-            write(file_Aprod,"\n    s = [\n")
+            write(file_Aprod,"\n    s = zeros($m)\n")
             for i = 1:m
-                @printf(file_Aprod, "        s[%d] = %s\n", i, s[i])
+                @printf(file_Aprod, "    s[%d] = %s\n", i, s[i])
             end
-            write(file_Aprod,"    ]\n    return s\nend\n")
+            write(file_Aprod,"    return s\nend\n")
 
             write(file_Aprod,"\nfunction Atprod(v)")
-            write(file_Aprod,"\n    st = [\n")
+            write(file_Aprod,"\n    st = zeros($n)\n")
             for j = 1:n
-                @printf(file_Aprod, "        st[%d] = %s\n", j, st[j])
+                @printf(file_Aprod, "    st[%d] = %s\n", j, st[j])
             end
-            write(file_Aprod,"    ]\n    return st\nend")
+            write(file_Aprod,"    return st\nend")
 
         end
     end
     println("Sucess")
     return (m,n,nz)
-end
-
-function nha(kline,spl,compact,entries,qualifier)
-
-    return s,st
 end
