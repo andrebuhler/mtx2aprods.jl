@@ -79,7 +79,7 @@ function mtx2aprods(mtx :: String; compact = true)
             end
             write(file_Aprod,"];return s; end\n")
 
-            write(file_Aprod,"function Aprod(v)")
+            write(file_Aprod,"function Atprod(v)")
             write(file_Aprod," st=[")
             for j = 1:n
                 @printf(file_Aprod, "st[%d] = %s;", j, st[j])
@@ -93,7 +93,7 @@ function mtx2aprods(mtx :: String; compact = true)
             end
             write(file_Aprod,"    ]\n    return s\nend\n")
 
-            write(file_Aprod,"\nfunction Aprod(v)")
+            write(file_Aprod,"\nfunction Atprod(v)")
             write(file_Aprod,"\n    st = [\n")
             for j = 1:n
                 @printf(file_Aprod, "        st[%d] = %s\n", j, st[j])
