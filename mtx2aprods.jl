@@ -65,11 +65,14 @@ function mtx2aprods(mtx :: String; compact = true)
                     end
                     i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
                     sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+
                     s[i] = s[i] * "$sgn$aij*v[$j]"
                     st[j] = st[j] * "$sgn$aij*v[$i]"
 
-                    s[j] = s[j] * "$sgn$aij*v[$i]"
-                    st[i] = st[i] * "$sgn$aij*v[$j]"
+                    if i != j
+                        s[j] = s[j] * "$sgn$aij*v[$i]"
+                        st[i] = st[i] * "$sgn$aij*v[$j]"
+                    end
                 end
             elseif qualifier == "skew-symmetric"
                 for kline = kline+1:length(lines)
@@ -81,9 +84,10 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
                     s[i] = s[i] * "$sgn$aij*v[$j]"
                     st[j] = st[j] * "$sgn$aij*v[$i]"
-
-                    s[j] = s[j] * "$isgn$aij*v[$i]"
-                    st[i] = st[i] * "$isgn$aij*v[$j]"
+                    if i != j
+                        s[j] = s[j] * "$isgn$aij*v[$i]"
+                        st[i] = st[i] * "$isgn$aij*v[$j]"
+                    end
                 end
             elseif qualifier == "hermitian"
                 for kline = kline+1:length(lines)
@@ -95,9 +99,10 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
                     s[i] = s[i] * "$sgn$aij*v[$j]"
                     st[j] = st[j] * "$sgn$aij*v[$i]"
-
-                    s[j] = s[j] * "$sgn$(aij')*v[$i]"
-                    st[i] = st[i] * "$sgn$(aij')*v[$j]"
+                    if i != j
+                        s[j] = s[j] * "$sgn$(aij')*v[$i]"
+                        st[i] = st[i] * "$sgn$(aij')*v[$j]"
+                    end
                 end
             end
         else
@@ -122,9 +127,10 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                     s[i] = s[i] * " $sgn $aij*v[$j]"
                     st[j] = st[j] * " $sgn $aij*v[$i]"
-
-                    s[j] = s[j] * " $sgn $aij*v[$i]"
-                    st[i] = st[i] * " $sgn $aij*v[$j]"
+                    if i != j
+                        s[j] = s[j] * " $sgn $aij*v[$i]"
+                        st[i] = st[i] * " $sgn $aij*v[$j]"
+                    end
                 end
             elseif qualifier == "skew-symmetric"
                 for kline = kline+1:length(lines)
@@ -136,9 +142,10 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
                     s[i] = s[i] * " $sgn $aij*v[$j]"
                     st[j] = st[j] * " $sgn $aij*v[$i]"
-
-                    s[j] = s[j] * " $isgn $aij*v[$i]"
-                    st[i] = st[i] * " $isgn $aij*v[$j]"
+                    if i != j
+                        s[j] = s[j] * " $isgn $aij*v[$i]"
+                        st[i] = st[i] * " $isgn $aij*v[$j]"
+                    end
                 end
             elseif qualifier == "hermitian"
                 for kline = kline+1:length(lines)
@@ -150,9 +157,10 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
                     s[i] = s[i] * " $sgn $aij*v[$j]"
                     st[j] = st[j] * " $sgn $aij*v[$i]"
-
-                    s[j] = s[j] * " $sgn $(aij')*v[$i]"
-                    st[i] = st[i] * " $sgn $(aij')*v[$j]"
+                    if i != j
+                        s[j] = s[j] * " $sgn $(aij')*v[$i]"
+                        st[i] = st[i] * " $sgn $(aij')*v[$j]"
+                    end
                 end
             end
         end
@@ -161,18 +169,18 @@ function mtx2aprods(mtx :: String; compact = true)
     open("Aprod.jl", "w") do file_Aprod
         write(file_Aprod,"function Aprod(v)")
         if compact
-            write(file_Aprod," s=[")
+            write(file_Aprod," s=zeros($m);")
             for i = 1:m
                 @printf(file_Aprod, "s[%d]=%s;", i, s[i])
             end
-            write(file_Aprod,"];return s; end\n")
+            write(file_Aprod,"return s; end\n")
 
             write(file_Aprod,"function Aprod(v)")
-            write(file_Aprod," st=[")
+            write(file_Aprod," st=zeros($n);")
             for j = 1:n
                 @printf(file_Aprod, "st[%d] = %s;", j, st[j])
             end
-            write(file_Aprod,"];return st; end")
+            write(file_Aprod,"return st; end")
 
         else
             write(file_Aprod,"\n    s = zeros($m)\n")
