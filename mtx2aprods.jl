@@ -4,18 +4,18 @@ function mtx2aprods(mtx; compact = true)
   open(mtx, "r") do file
     kline = 1
     lines = readlines(file)
-    
+
     #comments of mtx files
     while split(lines[kline])[1][1] == '%'
       kline = kline+1
     end
-    
+
     #dimensions of matrix
     spl = split(lines[kline])
     m, n, nz = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Int64,spl[3])
     s = fill("0", m)
     st = fill("0", n)
-    
+
     for kline = kline+1:length(lines)
       spl = split(lines[kline])
       if spl[1][1] == '%'
@@ -35,21 +35,19 @@ function mtx2aprods(mtx; compact = true)
   end
 
   open("Aprod.jl", "w") do file_Aprod
-    write(file_Aprod,"function Aprod(v)\n")
-    write(file_Aprod,"s = [\n")
+      write(file_Aprod,"function Aprod(v)\n")
+    write(file_Aprod,"    s = zeros($m)\n")
     for i = 1:m
-      @printf(file_Aprod, "%s;\n", i, s[i])
+        @printf(file_Aprod, "    s[%d] = %s\n", i, s[i])
     end
-    write(file_Aprod,"]\nreturn s\n end")
-  end
+    write(file_Aprod,"    return s\nend\n")
 
-  open("Atprod.jl", "w") do file_Atprod
-    write(file_Atprod,"function Atprod(v)\n")
-    write(file_Atprod,"st = zeros($n)\n")
+    write(file_Aprod,"\nfunction Atprod(v)")
+    write(file_Aprod,"\n    st = zeros($n)\n")
     for j = 1:n
-      @printf(file_Atprod, "st[%d] = %s\n", j, st[j])
+        @printf(file_Aprod, "    st[%d] = %s\n", j, st[j])
     end
-    write(file_Atprod,"return st\n end")
+    write(file_Aprod,"    return st\nend")
   end
 
   return
