@@ -1,19 +1,25 @@
 
 function mtx2aprods(mtx :: String; compact = true)
     m = n = nz = s = st = 0
+    if compact
+      cchar1 = cchar3 = ""
+      cchar2 = ";"
+    else
+      cchar1 = " "
+      cchar2 = "\n"
+      cchar3 = "    "
+    end
     open(mtx, "r") do file
-      line = readline(file)
+        line = readline(file)
         if split(line)[1] != "%%MatrixMarket"
             error("Not a matrixmarket file!")
         end
         if split(line)[2] != "matrix"
             error("Format not implemented!")
         end
-
         if split(line)[3] != "coordinate"
             error("Format for matrix not implemented!")
         end
-
         qualifier = split(line)[4]
         if qualifier == "real"
             entries = Float64
@@ -43,162 +49,90 @@ function mtx2aprods(mtx :: String; compact = true)
 
         s = fill("", m)
         st = fill("", n)
-        if compact
-            if qualifier == "general"
-              while line!=""
-                    spl = split(line)
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * "$sgn$aij*v[$j]"
-                    st[j] = st[j] * "$sgn$aij*v[$i]"
-                    line = readline(file)
-                end
-            elseif qualifier == "symmetric"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
 
-                    s[i] = s[i] * "$sgn$aij*v[$j]"
-                    st[j] = st[j] * "$sgn$aij*v[$i]"
-
-                    if i != j
-                        s[j] = s[j] * "$sgn$aij*v[$i]"
-                        st[i] = st[i] * "$sgn$aij*v[$j]"
-                    end
+        if qualifier == "general"
+          while line!=""
+                spl = split(line)
+                if spl[1][1] == '%'
+                    continue
                 end
-            elseif qualifier == "skew-symmetric"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
-                    s[i] = s[i] * "$sgn$aij*v[$j]"
-                    st[j] = st[j] * "$sgn$aij*v[$i]"
-                    if i != j
-                        s[j] = s[j] * "$isgn$aij*v[$i]"
-                        st[i] = st[i] * "$isgn$aij*v[$j]"
-                    end
-                end
-            elseif qualifier == "hermitian"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
-                    sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * "$sgn$aij*v[$j]"
-                    st[j] = st[j] * "$sgn$aij*v[$i]"
-                    if i != j
-                        s[j] = s[j] * "$sgn$(aij')*v[$i]"
-                        st[i] = st[i] * "$sgn$(aij')*v[$j]"
-                    end
-                end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                line = readline(file)
             end
-        else
-            if qualifier == "general"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * " $sgn $aij*v[$j]"
-                    st[j] = st[j] * " $sgn $aij*v[$i]"
+        elseif qualifier == "symmetric"
+              while line!=""
+                spl = split(line)
+                if spl[1][1] == '%'
+                    continue
+                end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
 
+                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+
+                if i != j
+                    s[j] = s[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                    st[i] = st[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
                 end
-            elseif qualifier == "symmetric"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * " $sgn $aij*v[$j]"
-                    st[j] = st[j] * " $sgn $aij*v[$i]"
-                    if i != j
-                        s[j] = s[j] * " $sgn $aij*v[$i]"
-                        st[i] = st[i] * " $sgn $aij*v[$j]"
-                    end
+                line = readline(file)
+            end
+        elseif qualifier == "skew-symmetric"
+            while line!=""
+                spl = split(line)
+                if spl[1][1] == '%'
+                    continue
                 end
-            elseif qualifier == "skew-symmetric"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                    sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
-                    s[i] = s[i] * " $sgn $aij*v[$j]"
-                    st[j] = st[j] * " $sgn $aij*v[$i]"
-                    if i != j
-                        s[j] = s[j] * " $isgn $aij*v[$i]"
-                        st[i] = st[i] * " $isgn $aij*v[$j]"
-                    end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
+                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                if i != j
+                    s[j] = s[j] * "$cchar1$isgn$cchar1$aij*v[$i]"
+                    st[i] = st[i] * "$cchar1$isgn$cchar1$aij*v[$j]"
                 end
-            elseif qualifier == "hermitian"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
-                    if spl[1][1] == '%'
-                        continue
-                    end
-                    i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
-                    sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * " $sgn $aij*v[$j]"
-                    st[j] = st[j] * " $sgn $aij*v[$i]"
-                    s[i] = s[i] * " $sgn $aij*v[$j]"
-                    st[j] = st[j] * " $sgn $aij*v[$i]"
-                    if i != j
-                        s[j] = s[j] * " $sgn $(aij')*v[$i]"
-                        st[i] = st[i] * " $sgn $(aij')*v[$j]"
-                    end
+                line = readline(file)
+            end
+        elseif qualifier == "hermitian"
+              while line!=""
+                spl = split(line)
+                if spl[1][1] == '%'
+                    continue
                 end
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
+                sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
+                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                if i != j
+                    s[j] = s[j] * "$cchar1$sgn$cchar1$(aij')*v[$i]"
+                    st[i] = st[i] * "$cchar1$sgn$cchar1$(aij')*v[$j]"
+                end
+                line = readline(file)
             end
         end
     end
 
     open("Aprod.jl", "w") do file_Aprod
-        if compact
-            write(file_Aprod,"function Aprod(v,s) ")
-            for i = 1:m
-                @printf(file_Aprod, "s[%d]=%s;", i, s[i])
-            end
-            write(file_Aprod,"return s; end\n")
 
-            write(file_Aprod,"\nfunction Atprod(v,st) ")
-            for j = 1:n
-                @printf(file_Aprod, "st[%d] = %s;", j, st[j])
+        @printf(file_Aprod,"function Aprod(v,s)%s",cchar2)
+        for i = 1:m
+            if s[i] != ""
+                @printf(file_Aprod, "%s s[%d]%s=%s%s%s", cchar3,i,cchar1,cchar1, s[i],cchar2)
             end
-            write(file_Aprod,"return st; end")
-
-        else
-            write(file_Aprod,"function Aprod(v,s)\n")
-            for i = 1:m
-                if s[i] != ""
-                  @printf(file_Aprod, "    s[%d] = %s\n", i, s[i])
-                end
-            end
-            write(file_Aprod,"    return s\nend\n")
-
-            write(file_Aprod,"\nfunction Atprod(v,st)\n")
-            for j = 1:n
-                @printf(file_Aprod, "    st[%d] = %s\n", j, st[j])
-            end
-            write(file_Aprod,"    return st\nend")
-
         end
+        @printf(file_Aprod,"%s  return s %s end\n",cchar3,cchar2)
+
+        @printf(file_Aprod,"\nfunction Atprod(v,st)%s",cchar2)
+        for j = 1:n
+            if st[j] !=""
+                @printf(file_Aprod, "%s st[%d]%s=%s %s",cchar3, j,cchar1, st[j],cchar2)
+            end
+        end
+        @printf(file_Aprod,"%s return st %s end",cchar3,cchar3)
     end
-    println("Sucess")
+    println("Success")
     return (m,n,nz)
 end
