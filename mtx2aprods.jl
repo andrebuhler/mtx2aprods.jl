@@ -2,19 +2,19 @@
 function mtx2aprods(mtx :: String; compact = true)
     m = n = nz = s = st = 0
     open(mtx, "r") do file
-        lines = readlines(file)
-        if split(lines[kline])[1] != "%%MatrixMarket"
+      line = readline(file)
+        if split(line)[1] != "%%MatrixMarket"
             error("Not a matrixmarket file!")
         end
-        if split(lines[kline])[2] != "matrix"
+        if split(line)[2] != "matrix"
             error("Format not implemented!")
         end
 
-        if split(lines[kline])[3] != "coordinate"
+        if split(line)[3] != "coordinate"
             error("Format for matrix not implemented!")
         end
 
-        qualifier = split(lines[kline])[4]
+        qualifier = split(line)[4]
         if qualifier == "real"
             entries = Float64
         elseif qualifier == "integer"
@@ -27,26 +27,26 @@ function mtx2aprods(mtx :: String; compact = true)
             error("Not an entries format valid!")
         end
 
-        qualifier = split(lines[kline])[5]
+        qualifier = split(line)[5]
         if qualifier != "general" && qualifier != "symmetric" &&  qualifier != "skew-symmetric" && qualifier != "hermitian"
             error("Not an struct format valid!")
         end
 
         #comments of mtx files
-        while split(lines[kline])[1][1] == '%'
-            lines[kline] = readline(file)
+        while split(line)[1][1] == '%'
+            line = readline(file)
         end
 
         #dimensions of matrix
-        spl = split(lines[kline])
+        spl = split(line)
         m, n, nz = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Int64,spl[3])
 
         s = fill("", m)
         st = fill("", n)
         if compact
             if qualifier == "general"
-                for kline = kline+1:length(lines)
-                    spl = split(lines[kline])
+              while line!=""
+                    spl = split(line)
                     if spl[1][1] == '%'
                         continue
                     end
@@ -54,6 +54,7 @@ function mtx2aprods(mtx :: String; compact = true)
                     sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                     s[i] = s[i] * "$sgn$aij*v[$j]"
                     st[j] = st[j] * "$sgn$aij*v[$i]"
+                    line = readline(file)
                 end
             elseif qualifier == "symmetric"
                 for kline = kline+1:length(lines)
