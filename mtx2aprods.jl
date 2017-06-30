@@ -1,5 +1,3 @@
-
-
 function mtx2aprods(mtx :: String; compact = true)
     m = n = nz = s = st = 0
     if compact
@@ -47,7 +45,7 @@ function mtx2aprods(mtx :: String; compact = true)
         #dimensions of matrix
         spl = split(line)
         m, n, nz = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(Int64,spl[3])
-
+        line = readline(file)
         s = fill("", m)
         st = fill("", n)
 
@@ -58,7 +56,7 @@ function mtx2aprods(mtx :: String; compact = true)
                     continue
                 end
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ( s[i]=="" ?  (""):("+") , aij) : ("-", -aij)
+                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
                 st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
                 line = readline(file)
@@ -118,19 +116,21 @@ function mtx2aprods(mtx :: String; compact = true)
 
     open("Aprod.jl", "w") do file_Aprod
 
-        @printf(file_Aprod,"function Aprod(v,s)%s%ss%s=%s[",cchar2,cchar3,cchar1,cchar1);
+        @printf(file_Aprod,"function Aprod(v,s)%s",cchar2)
         for i = 1:m
             if s[i] != ""
-                @printf(file_Aprod, "%s%s",  s[i],cchar2);
+                @printf(file_Aprod, "%s s[%d]%s=%s%s%s", cchar3,i,cchar1,cchar1, s[i],cchar2);
             end
         end
-        @printf(file_Aprod,"]%s%sreturn s%send\n\nfunction Atprod(v,st)%s%sst%s=%s[",cchar2,cchar3,cchar2,cchar2,cchar3,cchar1,cchar1)
+        @printf(file_Aprod,"%s  return s %s end\n",cchar3,cchar2)
+
+        @printf(file_Aprod,"\nfunction Atprod(v,st)%s",cchar2)
         for j = 1:n
             if st[j] !=""
-                @printf(file_Aprod, "%s%s", st[j],cchar2)
+                @printf(file_Aprod, "%s st[%d]%s=%s %s",cchar3, j,cchar1, st[j],cchar2)
             end
         end
-        @printf(file_Aprod,"]%s%sreturn st%send",cchar2,cchar3,cchar2)
+        @printf(file_Aprod,"%s return st %s %s end",cchar3,cchar2,cchar3)
     end
     println("Success")
     return (m,n,nz)
