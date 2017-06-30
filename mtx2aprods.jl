@@ -120,7 +120,7 @@ function mtx2aprods(mtx :: String; compact = true)
         @printf(file_Aprod,"function Aprod(v,s)%s",cchar2)
         for i = 1:m
             if s[i] != ""
-                @printf(file_Aprod, "%s s[%d]%s=%s%s%s", cchar3,i,cchar1,cchar1, s[i],cchar2)
+                @printf(file_Aprod, "%s s[%d]%s=%s%s%s", cchar3,i,cchar1,cchar1, s[i],cchar2);
             end
         end
         @printf(file_Aprod,"%s  return s %s end\n",cchar3,cchar2)
@@ -131,7 +131,7 @@ function mtx2aprods(mtx :: String; compact = true)
                 @printf(file_Aprod, "%s st[%d]%s=%s %s",cchar3, j,cchar1, st[j],cchar2)
             end
         end
-        @printf(file_Aprod,"%s return st %s end",cchar3,cchar3)
+        @printf(file_Aprod,"%s return st %s %s end",cchar3,cchar2,cchar3)
     end
     println("Success")
     return (m,n,nz)
