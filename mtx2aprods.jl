@@ -116,21 +116,19 @@ function mtx2aprods(mtx :: String; compact = true)
 
     open("Aprod.jl", "w") do file_Aprod
 
-        @printf(file_Aprod,"function Aprod(v,s)%s",cchar2)
+        @printf(file_Aprod,"function Aprod(v,s)%s%ss%s=%s[",cchar2,cchar3,cchar1,cchar1);
         for i = 1:m
             if s[i] != ""
-                @printf(file_Aprod, "%s s[%d]%s=%s%s%s", cchar3,i,cchar1,cchar1, s[i],cchar2);
+                @printf(file_Aprod, "%s%s",  s[i],cchar2);
             end
         end
-        @printf(file_Aprod,"%s  return s %s end\n",cchar3,cchar2)
-
-        @printf(file_Aprod,"\nfunction Atprod(v,st)%s",cchar2)
+        @printf(file_Aprod,"]%s%sreturn s%send\n\nfunction Atprod(v,st)%s%sst%s=%s[",cchar2,cchar3,cchar2,cchar2,cchar3,cchar1,cchar1)
         for j = 1:n
             if st[j] !=""
-                @printf(file_Aprod, "%s st[%d]%s=%s %s",cchar3, j,cchar1, st[j],cchar2)
+                @printf(file_Aprod, "%s%s", st[j],cchar2)
             end
         end
-        @printf(file_Aprod,"%s return st %s %s end",cchar3,cchar2,cchar3)
+        @printf(file_Aprod,"]%s%sreturn st%send",cchar2,cchar3,cchar2)
     end
     println("Success")
     return (m,n,nz)
