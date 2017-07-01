@@ -52,13 +52,23 @@ function mtx2aprods(mtx :: String; compact = true)
         if qualifier == "general"
           while line!=""
                 spl = split(line)
+                j = j0 = parse(Int64,spl[2])
+                #println("entro while")
+                while j==j0
+                    i,aij = parse(Int64,spl[1]),parse(entries,spl[3])
+                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                    s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                    st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                    line = readline(file)
+                    spl = split(line)
+                    if line == ""
+                        break
+                    end
+                    j = parse(Int64,spl[2])
+                end
 
-                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
-                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
-                line = readline(file)
             end
+
         elseif qualifier == "symmetric"
               while line!=""
                 spl = split(line)
@@ -120,5 +130,5 @@ function mtx2aprods(mtx :: String; compact = true)
         @printf(file_Aprod,"]%s%sreturn Av%send",cchar2,cchar3,cchar2)
     end
     println("Success")
-    return (m,n,nz)
+    #return (m,n,nz)
 end
