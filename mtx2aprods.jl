@@ -52,9 +52,7 @@ function mtx2aprods(mtx :: String; compact = true)
         if qualifier == "general"
           while line!=""
                 spl = split(line)
-                if spl[1][1] == '%'
-                    continue
-                end
+
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
                 sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
@@ -64,9 +62,6 @@ function mtx2aprods(mtx :: String; compact = true)
         elseif qualifier == "symmetric"
               while line!=""
                 spl = split(line)
-                if spl[1][1] == '%'
-                    continue
-                end
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
                 sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
 
@@ -82,9 +77,6 @@ function mtx2aprods(mtx :: String; compact = true)
         elseif qualifier == "skew-symmetric"
             while line!=""
                 spl = split(line)
-                if spl[1][1] == '%'
-                    continue
-                end
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
                 sgn, isgn, aij = aij > 0 ? ("+", "-", aij) : ("-", "+",-aij)
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
@@ -98,9 +90,6 @@ function mtx2aprods(mtx :: String; compact = true)
         elseif qualifier == "hermitian"
               while line!=""
                 spl = split(line)
-                if spl[1][1] == '%'
-                    continue
-                end
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
                 sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
