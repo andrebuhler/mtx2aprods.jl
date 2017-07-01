@@ -1,25 +1,13 @@
 function mtx2aprods(mtx :: String; compact = true)
     m = n = nz = s = st = 0
-    if compact
-      cchar1 = cchar3 = ""
-      cchar2 = ";"
-    else
-      cchar1 = " "
-      cchar2 = "\n"
-      cchar3 = "    "
-    end
+    compact ? (cchar1 = cchar3 = ""; cchar2 = ";") : (cchar1 = " ";cchar2 = "\n"; cchar3 = "    ")
     open(mtx, "r") do file
         line = readline(file)
-        if split(line)[1] != "%%MatrixMarket"
-            error("Not a matrixmarket file!")
-        end
-        if split(line)[2] != "matrix"
-            error("Format not implemented!")
-        end
-        if split(line)[3] != "coordinate"
-            error("Format for matrix not implemented!")
-        end
+        split(line)[1] != "%%MatrixMarket" ? error("Not a matrixmarket file!") :
+        split(line)[2] != "matrix" ? error("Format not implemented!") :
+        split(line)[3] != "coordinate" ? error("Format for matrix not implemented!") :
         qualifier = split(line)[4]
+
         if qualifier == "real"
             entries = Float64
         elseif qualifier == "integer"
@@ -33,9 +21,8 @@ function mtx2aprods(mtx :: String; compact = true)
         end
 
         qualifier = split(line)[5]
-        if qualifier != "general" && qualifier != "symmetric" &&  qualifier != "skew-symmetric" && qualifier != "hermitian"
-            error("Not an struct format valid!")
-        end
+        (qualifier != "general" && qualifier != "symmetric" &&  qualifier != "skew-symmetric" && qualifier != "hermitian") ? error("Not an struct format valid!") :
+
 
         #comments of mtx files
         while split(line)[1][1] == '%'
@@ -52,23 +39,13 @@ function mtx2aprods(mtx :: String; compact = true)
         if qualifier == "general"
           while line!=""
                 spl = split(line)
-                j = j0 = parse(Int64,spl[2])
-                #println("entro while")
-                while j==j0
-                    i,aij = parse(Int64,spl[1]),parse(entries,spl[3])
-                    sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
-                    s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
-                    st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
-                    line = readline(file)
-                    spl = split(line)
-                    if line == ""
-                        break
-                    end
-                    j = parse(Int64,spl[2])
-                end
-
+                i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
+                #sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                #s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
+                s[i] = s[i] * "+$cchar1$aij*v[$j]"
+                #st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                line = readline(file)
             end
-
         elseif qualifier == "symmetric"
               while line!=""
                 spl = split(line)
@@ -129,6 +106,4 @@ function mtx2aprods(mtx :: String; compact = true)
         end
         @printf(file_Aprod,"]%s%sreturn Av%send",cchar2,cchar3,cchar2)
     end
-    println("Success")
-    #return (m,n,nz)
 end
