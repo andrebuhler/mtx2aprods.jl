@@ -92,12 +92,12 @@ function mtx2aprods(mtx :: String; compact = true)
     open("Aprod.jl", "w") do file_Aprod
         @printf(file_Aprod,"function Aprod(Av,v) %s%sAv%s=%s[",cchar2,cchar3,cchar1,cchar1);
         for i = 1:m
-            @printf(file_Aprod, "%s%s",  s[i],cchar2);
+            @printf(file_Aprod, "%s%s%s", cchar3, s[i],cchar2);
         end
-        @printf(file_Aprod,"]%s%sreturn Av%send\n\nfunction Atprod(Av,v) %s%sAv%s=%s[",cchar2,cchar3,cchar2,cchar2,cchar3,cchar1,cchar1)
+        @printf(file_Aprod,"%s]%s%sreturn Av%send\nfunction Atprod(Av,v) %s%sAv%s=%s[",cchar3,cchar2,cchar3,cchar2,cchar2,cchar3,cchar1,cchar1)
         for j = 1:n
-            @printf(file_Aprod, "%s%s", st[j],cchar2)
+            @printf(file_Aprod, "%s%s%s", cchar3,st[j],cchar2)
         end
-        @printf(file_Aprod,"]%s%sreturn Av%send",cchar2,cchar3,cchar2)
+        @printf(file_Aprod,"%s]%s%sreturn Av%send",cchar3,cchar2,cchar3,cchar2)
     end
 end
