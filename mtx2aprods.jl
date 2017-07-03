@@ -40,7 +40,7 @@ function mtx2aprods(mtx :: String; compact = true)
           while line!=""
                 spl = split(line)
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                sgn = aij > 0 ? "+" : ""
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
                 st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
                 line = readline(file)
@@ -49,7 +49,7 @@ function mtx2aprods(mtx :: String; compact = true)
               while line!=""
                 spl = split(line)
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])
-                sgn, aij = aij > 0 ? ("+", aij) : ("-", -aij)
+                sgn = aij > 0 ? "+" : ""
 
                 s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
                 st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
@@ -77,12 +77,12 @@ function mtx2aprods(mtx :: String; compact = true)
               while line!=""
                 spl = split(line)
                 i,j,aij = parse(Int64,spl[1]),parse(Int64,spl[2]),parse(entries,spl[3])+parse(entries,spl[4])*im
-                sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij)
-                s[i] = s[i] * "$cchar1$sgn$cchar1$aij*v[$j]"
-                st[j] = st[j] * "$cchar1$sgn$cchar1$aij*v[$i]"
+                sgn, aij = real(aij) > 0 ? ("+", aij) : ("-", -aij')
+                s[i] = s[i] * "+($cchar1$sgn$cchar1$aij)*v[$j]"
+                st[j] = st[j] * "+($cchar1$sgn$cchar1$aij)*v[$i]"
                 if i != j
-                    s[j] = s[j] * "$cchar1$sgn$cchar1$(aij')*v[$i]"
-                    st[i] = st[i] * "$cchar1$sgn$cchar1$(aij')*v[$j]"
+                    s[j] = s[j] * "+($cchar1$sgn$cchar1$(aij'))*v[$i]"
+                    st[i] = st[i] * "+($cchar1$sgn$cchar1$(aij'))*v[$j]"
                 end
                 line = readline(file)
             end
@@ -90,18 +90,13 @@ function mtx2aprods(mtx :: String; compact = true)
     end
 
     open("Aprod.jl", "w") do file_Aprod
-
-        @printf(file_Aprod,"function Aprod(v) Av=zeros(%d)%s%sAv%s=%s[",n,cchar2,cchar3,cchar1,cchar1);
+        @printf(file_Aprod,"function Aprod(Av,v) %s%sAv%s=%s[",cchar2,cchar3,cchar1,cchar1);
         for i = 1:m
-            if s[i] != ""
-                @printf(file_Aprod, "%s%s",  s[i],cchar2);
-            end
+            @printf(file_Aprod, "%s%s",  s[i],cchar2);
         end
-        @printf(file_Aprod,"]%s%sreturn Av%send\n\nfunction Atprod(v) Av=zeros(%d)%s%sAv%s=%s[",cchar2,cchar3,cchar2,m,cchar2,cchar3,cchar1,cchar1)
+        @printf(file_Aprod,"]%s%sreturn Av%send\n\nfunction Atprod(Av,v) %s%sAv%s=%s[",cchar2,cchar3,cchar2,cchar2,cchar3,cchar1,cchar1)
         for j = 1:n
-            if st[j] !=""
-                @printf(file_Aprod, "%s%s", st[j],cchar2)
-            end
+            @printf(file_Aprod, "%s%s", st[j],cchar2)
         end
         @printf(file_Aprod,"]%s%sreturn Av%send",cchar2,cchar3,cchar2)
     end
