@@ -100,4 +100,5 @@ function mtx2aprods(mtx :: String; compact = true)
         end
         @printf(file_Aprod,"%s]%s%sreturn Av%send",cchar3,cchar2,cchar3,cchar2)
     end
+    return m,n,nz
 end

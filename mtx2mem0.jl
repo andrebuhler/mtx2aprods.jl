@@ -73,6 +73,29 @@ function mtx2mem(mtx :: String; compact = true)
             end
         end
     end
+    if compact
+        open("A.jl", "w") do file_Aprod
+            @printf(file_Aprod, "A=spzeros(%d,%d);",m,n);
+            for i = 1:m
+                for j=1:n
+                    @printf(file_Aprod, "A[%d,%d]=%f+%fim; ", i,j, real(A[i,j]),imag(A[i,j]));
+                end
+            end
 
-    return m,n,nz,A
+
+        end
+    else
+        open("A.jl", "w") do file_Aprod
+            @printf(file_Aprod, "A=[");
+            for i = 1:m
+                for j=1:n
+                    @printf(file_Aprod, "%f+%fim ",  real(A[i,j]),imag(A[i,j]));
+                end
+                @printf(file_Aprod,";")
+            end
+            @printf(file_Aprod,"]")
+
+        end
+    end
+    return m,n,nz
 end
